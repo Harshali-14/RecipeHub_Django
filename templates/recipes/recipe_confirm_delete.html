@@ -1,0 +1,16 @@
+{% extends 'recipes/base.html' %}
+{% block title %}Delete Recipe — RecipeHub{% endblock %}
+{% block content %}
+<div class="container" style="padding-top:4rem;padding-bottom:4rem;text-align:center;">
+  <div style="max-width:480px;margin:0 auto;background:var(--white);border-radius:20px;padding:2.5rem;box-shadow:var(--shadow-md);">
+    <div style="font-size:3rem;margin-bottom:1rem;">🗑</div>
+    <h2 style="font-family:'Playfair Display',serif;font-size:1.6rem;margin-bottom:0.5rem;">Delete "{{ recipe.title }}"?</h2>
+    <p style="color:var(--slate-light);margin-bottom:2rem;font-size:0.9rem;">This can't be undone. All comments and ratings will also be removed.</p>
+    <form method="post" style="display:flex;gap:0.8rem;justify-content:center;">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger">Yes, delete it</button>
+      <a href="{% url 'recipe_detail' recipe.pk %}" class="btn btn-secondary">Keep it</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

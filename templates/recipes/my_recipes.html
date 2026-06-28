@@ -1,0 +1,79 @@
+{% extends 'recipes/base.html' %}
+{% block title %}My Kitchen — RecipeHub{% endblock %}
+{% block content %}
+<div class="container section">
+  <div class="section-title">👨‍🍳 My Kitchen</div>
+  <div class="section-sub">Your recipes and saved collection</div>
+
+  <div style="margin-bottom:2.5rem;">
+    <a href="{% url 'recipe_create' %}" class="btn btn-primary">+ Add New Recipe</a>
+  </div>
+
+  <!-- MY RECIPES -->
+  <div class="my-section">
+    <h2 style="font-family:'Playfair Display',serif;font-size:1.4rem;margin-bottom:1.2rem;">📝 My Recipes ({{ recipes.count }})</h2>
+    {% if recipes %}
+    <div class="recipe-grid">
+      {% for recipe in recipes %}
+      <div class="recipe-card" style="position:relative;">
+        <a href="{% url 'recipe_detail' recipe.pk %}" style="text-decoration:none;color:inherit;flex:1;display:flex;flex-direction:column;">
+          <div class="card-img">{% if recipe.image %}<img src="{{ recipe.image.url }}" alt="{{ recipe.title }}">{% else %}🍽️{% endif %}</div>
+          <div class="card-body">
+            <div class="card-meta">
+              <span class="badge badge-category">{{ recipe.get_category_display }}</span>
+              <span class="badge badge-{{ recipe.difficulty }}">{{ recipe.get_difficulty_display }}</span>
+            </div>
+            <div class="card-title">{{ recipe.title }}</div>
+            <div class="card-footer">
+              <span>⏱ {{ recipe.total_time }} min</span>
+              <span class="stars">{% if recipe.avg_rating %}⭐ {{ recipe.avg_rating }}{% else %}—{% endif %}</span>
+            </div>
+          </div>
+        </a>
+        <div style="padding:0.8rem 1.2rem;border-top:1px solid var(--cream-dark);display:flex;gap:0.5rem;">
+          <a href="{% url 'recipe_edit' recipe.pk %}" class="btn btn-ghost btn-sm" style="flex:1;justify-content:center;">✏️ Edit</a>
+          <a href="{% url 'recipe_delete' recipe.pk %}" class="btn btn-danger btn-sm">🗑</a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <div class="icon">🍽️</div>
+      <p>You haven't added any recipes yet.</p>
+      <a href="{% url 'recipe_create' %}" class="btn btn-primary" style="margin-top:1rem;">Share your first recipe</a>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- SAVED RECIPES -->
+  <div class="my-section">
+    <h2 style="font-family:'Playfair Display',serif;font-size:1.4rem;margin-bottom:1.2rem;">🔖 Saved Recipes ({{ saved.count }})</h2>
+    {% if saved %}
+    <div class="recipe-grid">
+      {% for item in saved %}
+      <a href="{% url 'recipe_detail' item.recipe.pk %}" class="recipe-card">
+        <div class="card-img">{% if item.recipe.image %}<img src="{{ item.recipe.image.url }}" alt="{{ item.recipe.title }}">{% else %}🍽️{% endif %}</div>
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="badge badge-category">{{ item.recipe.get_category_display }}</span>
+          </div>
+          <div class="card-title">{{ item.recipe.title }}</div>
+          <div class="card-desc" style="font-size:0.78rem;">By {{ item.recipe.author.username }}</div>
+          <div class="card-footer">
+            <span>⏱ {{ item.recipe.total_time }} min</span>
+            <span class="stars">{% if item.recipe.avg_rating %}⭐ {{ item.recipe.avg_rating }}{% else %}—{% endif %}</span>
+          </div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <div class="icon">🏷️</div>
+      <p>No saved recipes yet. Browse and tap 🏷️ to save recipes.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

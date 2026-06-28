@@ -1,0 +1,282 @@
+{% extends 'recipes/base.html' %}
+{% block title %}{{ action }} — RecipeHub{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+
+  <!-- Left panel: decorative -->
+  <div class="auth-panel">
+    <div class="auth-panel-inner">
+      <div class="auth-panel-logo">🍳 Recipe<span>Hub</span></div>
+      <blockquote class="auth-quote">
+        "Cooking is an act of love, a gift, a way of sharing with others."
+        <cite>— Madhur Jaffrey</cite>
+      </blockquote>
+      <div class="auth-panel-tags">
+        <span>🥗 Salads</span><span>🍝 Pasta</span><span>🍛 Curries</span>
+        <span>🥘 Stews</span><span>🍰 Desserts</span><span>🥞 Breakfast</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right panel: form -->
+  <div class="auth-form-side">
+    <div class="auth-card">
+
+      <div class="auth-eyebrow">
+        {% if action == 'Login' %}Welcome back{% else %}Get started{% endif %}
+      </div>
+      <h1 class="auth-title">
+        {% if action == 'Login' %}Sign in to your kitchen{% else %}Join the community{% endif %}
+      </h1>
+      <p class="auth-sub">
+        {% if action == 'Login' %}
+          Your recipes and bookmarks are waiting.
+        {% else %}
+          Share recipes, rate dishes, build your cookbook.
+        {% endif %}
+      </p>
+
+      <form method="post" class="auth-form">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+        <div class="auth-error-banner">
+          {{ form.non_field_errors.0 }}
+        </div>
+        {% endif %}
+
+        {% for field in form %}
+        <div class="form-group">
+          <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}
+          <div class="field-error">{{ field.errors.0 }}</div>
+          {% endif %}
+          {% if field.help_text %}
+          <div class="field-help">{{ field.help_text }}</div>
+          {% endif %}
+        </div>
+        {% endfor %}
+
+        <button type="submit" class="btn btn-primary btn-full">
+          {% if action == 'Login' %}Sign in{% else %}Create account{% endif %}
+        </button>
+      </form>
+
+      <p class="auth-switch">
+        {% if action == 'Login' %}
+          No account yet? <a href="{% url 'register' %}">Create one free</a>
+        {% else %}
+          Already have an account? <a href="{% url 'login' %}">Sign in</a>
+        {% endif %}
+      </p>
+
+    </div>
+  </div>
+
+</div>
+
+<style>
+  /* Hide the site nav's bottom border gap and make auth full-height */
+  body { background: var(--cream); }
+
+  .auth-wrap {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: calc(100vh - 64px); /* subtract nav height */
+  }
+
+  /* ── LEFT PANEL ──────────────────────────────── */
+  .auth-panel {
+    background: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 3.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .auth-panel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 90% 60% at 30% 110%, rgba(245,166,35,0.22) 0%, transparent 65%);
+    pointer-events: none;
+  }
+  .auth-panel-inner { position: relative; max-width: 360px; }
+
+  .auth-panel-logo {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: var(--white);
+    margin-bottom: 3rem;
+  }
+  .auth-panel-logo span { color: var(--saffron); }
+
+  .auth-quote {
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--white);
+    line-height: 1.4;
+    margin-bottom: 1rem;
+    border: none;
+    padding: 0;
+  }
+  .auth-quote cite {
+    display: block;
+    margin-top: 0.75rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-style: normal;
+    letter-spacing: 0.08em;
+    color: rgba(255,255,255,0.45);
+  }
+
+  .auth-panel-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 2.5rem;
+  }
+  .auth-panel-tags span {
+    background: rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.65);
+    font-size: 0.78rem;
+    padding: 0.35rem 0.8rem;
+    border-radius: 100px;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  /* ── RIGHT PANEL ─────────────────────────────── */
+  .auth-form-side {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 2rem;
+    background: var(--cream);
+  }
+  .auth-card { width: 100%; max-width: 400px; }
+
+  .auth-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--saffron-dk);
+    margin-bottom: 0.5rem;
+  }
+  .auth-title {
+    font-family: var(--font-display);
+    font-size: 1.9rem;
+    font-weight: 900;
+    color: var(--ink);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.5rem;
+  }
+  .auth-sub {
+    font-size: 0.9rem;
+    color: var(--ink-muted);
+    margin-bottom: 2rem;
+    line-height: 1.5;
+  }
+
+  /* ── FORM ────────────────────────────────────── */
+  .auth-form { display: flex; flex-direction: column; gap: 0; }
+
+  .form-group { margin-bottom: 1.1rem; }
+
+  .form-label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+    margin-bottom: 0.4rem;
+    letter-spacing: 0.01em;
+  }
+
+  /* Style all Django form inputs */
+  .auth-form input[type="text"],
+  .auth-form input[type="email"],
+  .auth-form input[type="password"],
+  .auth-form input[type="number"],
+  .auth-form select,
+  .auth-form textarea {
+    width: 100%;
+    padding: 0.65rem 0.85rem;
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    color: var(--ink);
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    appearance: none;
+  }
+  .auth-form input:focus,
+  .auth-form select:focus,
+  .auth-form textarea:focus {
+    border-color: var(--saffron);
+    box-shadow: 0 0 0 3px rgba(245,166,35,0.15);
+  }
+
+  .field-error {
+    font-size: 0.78rem;
+    color: var(--danger);
+    margin-top: 0.3rem;
+  }
+  .field-help {
+    font-size: 0.75rem;
+    color: var(--ink-muted);
+    margin-top: 0.3rem;
+    line-height: 1.4;
+  }
+
+  .auth-error-banner {
+    background: #FDECEA;
+    color: var(--danger);
+    border: 1px solid rgba(192,57,43,0.2);
+    border-left: 3px solid var(--danger);
+    border-radius: var(--radius-sm);
+    padding: 0.7rem 0.9rem;
+    font-size: 0.84rem;
+    margin-bottom: 1.1rem;
+  }
+
+  .btn-full {
+    width: 100%;
+    justify-content: center;
+    margin-top: 0.5rem;
+    padding-top: 0.8rem;
+    padding-bottom: 0.8rem;
+    font-size: 0.95rem;
+  }
+
+  .auth-switch {
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: 0.85rem;
+    color: var(--ink-muted);
+  }
+  .auth-switch a {
+    color: var(--saffron-dk);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .auth-switch a:hover { color: var(--ink); }
+
+  /* ── RESPONSIVE ──────────────────────────────── */
+  @media (max-width: 768px) {
+    .auth-wrap { grid-template-columns: 1fr; }
+    .auth-panel { display: none; } /* hide decorative panel on mobile */
+    .auth-form-side { min-height: calc(100vh - 64px); padding: 2rem 1.25rem; }
+    .auth-title { font-size: 1.6rem; }
+  }
+</style>
+
+{% endblock %}

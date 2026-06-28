@@ -1,0 +1,162 @@
+{% extends 'recipes/base.html' %}
+{% block title %}{{ recipe.title }} — RecipeHub{% endblock %}
+{% block content %}
+<div class="container section">
+  <a href="{% url 'recipe_list' %}" style="color:var(--slate-light);text-decoration:none;font-size:0.85rem;">← Back to recipes</a>
+
+  <div class="detail-layout" style="margin-top:1.5rem;">
+    <!-- MAIN -->
+    <div>
+      <div class="detail-hero-img">
+        {% if recipe.image %}<img src="{{ recipe.image.url }}" alt="{{ recipe.title }}">{% else %}🍽️{% endif %}
+      </div>
+
+      <div class="detail-meta">
+        <span class="badge badge-category">{{ recipe.get_category_display }}</span>
+        <span class="badge badge-{{ recipe.difficulty }}">{{ recipe.get_difficulty_display }}</span>
+        {% if recipe.is_featured %}<span class="badge" style="background:#FFF8E1;color:#F57F17;">⭐ Featured</span>{% endif %}
+      </div>
+
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;">
+        <h1 class="detail-title">{{ recipe.title }}</h1>
+        {% if user.is_authenticated %}
+        <button id="save-btn" class="save-btn" onclick="toggleSave({{ recipe.pk }})" title="Save recipe">
+          {% if user_saved %}🔖{% else %}🏷️{% endif %}
+        </button>
+        {% endif %}
+      </div>
+
+      <p style="color:var(--slate);font-size:0.95rem;margin-bottom:1rem;">{{ recipe.description }}</p>
+      <p style="font-size:0.82rem;color:var(--slate-light);">By <strong>{{ recipe.author.username }}</strong> · {{ recipe.created_at|date:"M d, Y" }}</p>
+
+      <div class="detail-stats">
+        <div class="stat-box"><div class="val">{{ recipe.prep_time }}</div><div class="lbl">Prep min</div></div>
+        <div class="stat-box"><div class="val">{{ recipe.cook_time }}</div><div class="lbl">Cook min</div></div>
+        <div class="stat-box"><div class="val" id="serving-count">{{ recipe.servings }}</div><div class="lbl">Servings</div></div>
+        <div class="stat-box"><div class="val" id="avg-rating">{{ recipe.avg_rating|default:"—" }}</div><div class="lbl">Rating <span id="rating-count">({{ recipe.rating_count }})</span></div></div>
+      </div>
+
+      <!-- INGREDIENTS with scaler -->
+      <div style="margin-bottom:2rem;">
+        <h2 style="font-family:'Playfair Display',serif;font-size:1.3rem;margin-bottom:0.8rem;">Ingredients</h2>
+        <div class="scaler">
+          <span>Servings:</span>
+          <button id="serve-minus">−</button>
+          <span id="serving-count-scaler">{{ recipe.servings }}</span>
+          <button id="serve-plus">+</button>
+        </div>
+        <ul class="ingredient-list">
+          {% for item in ingredients %}
+          <li>{{ item }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <!-- INSTRUCTIONS -->
+      <div style="margin-bottom:2rem;">
+        <h2 style="font-family:'Playfair Display',serif;font-size:1.3rem;margin-bottom:0.8rem;">Instructions</h2>
+        <ol class="instruction-steps">
+          {% for step in instructions %}
+          <li>{{ step }}</li>
+          {% endfor %}
+        </ol>
+      </div>
+
+      <!-- COMMENTS -->
+      <div>
+        <h2 style="font-family:'Playfair Display',serif;font-size:1.3rem;margin-bottom:1rem;">Comments ({{ comments.count }})</h2>
+        {% if user.is_authenticated %}
+        <form method="post" style="margin-bottom:1.5rem;">
+          {% csrf_token %}
+          {{ comment_form.text }}
+          <button type="submit" class="btn btn-primary btn-sm" style="margin-top:0.6rem;">Post comment</button>
+        </form>
+        {% else %}
+        <p style="font-size:0.88rem;color:var(--slate-light);margin-bottom:1rem;"><a href="{% url 'login' %}">Login</a> to leave a comment.</p>
+        {% endif %}
+        {% for comment in comments %}
+        <div class="comment">
+          <div class="comment-header">
+            <span class="comment-user">{{ comment.user.username }}</span>
+            <div style="display:flex;align-items:center;gap:0.8rem;">
+              <span class="comment-date">{{ comment.created_at|date:"M d, Y" }}</span>
+              {% if user == comment.user %}
+              <a href="{% url 'delete_comment' comment.pk %}" style="font-size:0.75rem;color:var(--terracotta);text-decoration:none;">Delete</a>
+              {% endif %}
+            </div>
+          </div>
+          <p class="comment-text">{{ comment.text }}</p>
+        </div>
+        {% empty %}
+        <p style="color:var(--slate-light);font-size:0.88rem;">No comments yet. Be the first!</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div>
+      <!-- COOK TIMER -->
+      <div class="sidebar-card">
+        <h3>⏱ Cook Timer</h3>
+        <div class="cook-timer">
+          <div style="font-size:0.78rem;color:rgba(255,255,255,0.5);">Cook time: {{ recipe.cook_time }} min</div>
+          <div class="timer-display" id="timer-display">{{ recipe.cook_time|stringformat:"02d" }}:00</div>
+          <div class="timer-btns">
+            <button class="btn btn-primary btn-sm" onclick="startTimer()">▶ Start</button>
+            <button class="btn btn-ghost btn-sm" style="color:#fff;border-color:rgba(255,255,255,0.3)" onclick="pauseTimer()">⏸ Pause</button>
+            <button class="btn btn-ghost btn-sm" style="color:#fff;border-color:rgba(255,255,255,0.3)" onclick="resetTimer({{ recipe.cook_time }})">↺ Reset</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RATING -->
+      {% if user.is_authenticated and user != recipe.author %}
+      <div class="sidebar-card">
+        <h3>⭐ Rate this recipe</h3>
+        <div id="star-rating" class="star-rating">
+          {% for i in "12345" %}
+          <button class="star-btn {% if user_rating and user_rating.score >= forloop.counter %}active{% endif %}" data-score="{{ forloop.counter }}">★</button>
+          {% endfor %}
+        </div>
+        <p style="font-size:0.78rem;color:var(--slate-light);margin-top:0.5rem;">Click to rate</p>
+      </div>
+      {% endif %}
+
+      <!-- AUTHOR ACTIONS -->
+      {% if user == recipe.author %}
+      <div class="sidebar-card">
+        <h3>🛠 Manage Recipe</h3>
+        <div style="display:flex;flex-direction:column;gap:0.6rem;">
+          <a href="{% url 'recipe_edit' recipe.pk %}" class="btn btn-secondary">✏️ Edit recipe</a>
+          <a href="{% url 'recipe_delete' recipe.pk %}" class="btn btn-danger">🗑 Delete recipe</a>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- RELATED -->
+      {% if related %}
+      <div class="sidebar-card">
+        <h3>🍽️ More {{ recipe.get_category_display }}</h3>
+        {% for r in related %}
+        <a href="{% url 'recipe_detail' r.pk %}" style="display:flex;gap:0.8rem;align-items:center;padding:0.6rem 0;border-bottom:1px solid var(--cream-dark);text-decoration:none;color:inherit;">
+          <div style="width:48px;height:48px;background:var(--cream-dark);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;">
+            {% if r.image %}<img src="{{ r.image.url }}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">{% else %}🍽️{% endif %}
+          </div>
+          <div>
+            <div style="font-size:0.88rem;font-weight:600;">{{ r.title }}</div>
+            <div style="font-size:0.75rem;color:var(--slate-light);">⏱ {{ r.total_time }} min</div>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  initStarRating({{ recipe.pk }}, {{ user_rating.score|default:"0" }});
+  initTimer({{ recipe.cook_time }});
+</script>
+{% endblock %}

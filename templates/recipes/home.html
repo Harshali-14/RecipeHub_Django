@@ -1,0 +1,167 @@
+{% extends 'recipes/base.html' %}
+{% load recipe_extras %}
+
+{% block title %}RecipeHub — Home{% endblock %}
+
+{% block content %}
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-content">
+    <span class="hero-eyebrow">Your community kitchen</span>
+    <h1>Cook Something <span class="hero-hand">Delicious</span> Today</h1>
+    <p>Discover, share and rate recipes with a community that loves food as much as you do.</p>
+    <div class="hero-cta">
+      <a href="{% url 'recipe_list' %}" class="btn btn-primary">Browse Recipes</a>
+      {% if user.is_authenticated %}
+        <a href="{% url 'recipe_create' %}" class="btn btn-secondary">+ Share a Recipe</a>
+      {% else %}
+        <a href="{% url 'register' %}" class="btn btn-secondary">Join Free</a>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="stats-inner">
+    <div class="stat">
+      <div class="stat-num">{{ total_recipes }}</div>
+      <div class="stat-label">Recipes</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">{{ category_emojis|length }}</div>
+      <div class="stat-label">Categories</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">⭐</div>
+      <div class="stat-label">Community rated</div>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURED -->
+{% if featured %}
+<section class="section section-cream">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-eyebrow">Handpicked</div>
+      <div class="section-title">Featured Recipes</div>
+      <div class="section-sub">Selected by our community</div>
+    </div>
+    <div class="recipe-grid">
+      {% for recipe in featured %}
+      <a href="{% url 'recipe_detail' recipe.pk %}" class="featured-card">
+        <div class="featured-img">
+          {% if recipe.image %}
+            <img src="{{ recipe.image.url }}" alt="{{ recipe.title }}">
+          {% else %}
+            <div class="card-img-fallback">{{ category_emojis|get_item:recipe.category|default:"🍽️" }}</div>
+          {% endif %}
+        </div>
+        <div class="featured-body">
+          <div class="featured-label">⭐ Featured</div>
+          <div class="featured-title">{{ recipe.title }}</div>
+          <div class="featured-desc">{{ recipe.description|truncatechars:80 }}</div>
+          <div class="card-footer-meta">⏱ {{ recipe.total_time }} min &middot; {{ recipe.get_category_display }}</div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- CATEGORY QUICK LINKS -->
+<section class="category-strip">
+  <div class="container">
+    <div class="category-strip-label">Browse by category</div>
+    <div class="category-pills">
+      {% for key, emoji in category_emojis.items %}
+      <a href="{% url 'recipe_list' %}?category={{ key }}" class="category-pill">
+        {{ emoji }} {{ key|capfirst }}
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- RECENTLY ADDED -->
+<section class="section section-light">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-eyebrow">Just added</div>
+      <div class="section-title">Recently Added</div>
+      <div class="section-sub">Fresh from our community kitchen</div>
+    </div>
+    {% if recent %}
+    <div class="recipe-grid">
+      {% for recipe in recent %}
+      <a href="{% url 'recipe_detail' recipe.pk %}" class="recipe-card">
+        <div class="card-img">
+          {% if recipe.image %}
+            <img src="{{ recipe.image.url }}" alt="{{ recipe.title }}">
+          {% else %}
+            <div class="card-img-fallback">{{ category_emojis|get_item:recipe.category|default:"🍽️" }}</div>
+          {% endif %}
+        </div>
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="badge badge-category">{{ recipe.get_category_display }}</span>
+            <span class="badge badge-{{ recipe.difficulty }}">{{ recipe.get_difficulty_display }}</span>
+          </div>
+          <div class="card-title">{{ recipe.title }}</div>
+          <div class="card-desc">{{ recipe.description|truncatechars:80 }}</div>
+          <div class="card-footer">
+            <span>⏱ {{ recipe.total_time }} min</span>
+            <span class="stars">{% if recipe.avg_rating %}★ {{ recipe.avg_rating }}{% else %}No ratings{% endif %}</span>
+          </div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="empty-state">No recipes yet. <a href="{% url 'recipe_create' %}">Be the first to share one!</a></p>
+    {% endif %}
+  </div>
+</section>
+
+<!-- TOP RATED -->
+{% if top_rated %}
+<section class="section section-cream">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-eyebrow">Community favourites</div>
+      <div class="section-title">Top Rated</div>
+      <div class="section-sub">The dishes everyone keeps coming back to</div>
+    </div>
+    <div class="recipe-grid">
+      {% for recipe in top_rated %}
+      <a href="{% url 'recipe_detail' recipe.pk %}" class="recipe-card">
+        <div class="card-img">
+          {% if recipe.image %}
+            <img src="{{ recipe.image.url }}" alt="{{ recipe.title }}">
+          {% else %}
+            <div class="card-img-fallback">{{ category_emojis|get_item:recipe.category|default:"🍽️" }}</div>
+          {% endif %}
+        </div>
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="badge badge-category">{{ recipe.get_category_display }}</span>
+            <span class="badge badge-{{ recipe.difficulty }}">{{ recipe.get_difficulty_display }}</span>
+          </div>
+          <div class="card-title">{{ recipe.title }}</div>
+          <div class="card-desc">{{ recipe.description|truncatechars:80 }}</div>
+          <div class="card-footer">
+            <span>⏱ {{ recipe.total_time }} min</span>
+            <span class="stars">★ {{ recipe.avg_rating }} ({{ recipe.rating_count }})</span>
+          </div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% endblock %}
