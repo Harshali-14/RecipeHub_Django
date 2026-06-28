@@ -19,6 +19,43 @@ RecipeHub is designed as a community-driven platform where users can:
 - Access recipe data through REST APIs
 
 ---
+---
+
+## Screenshots
+
+<div align="center">
+
+### Register
+
+<img src="Screenshots/register.png" width="90%" />
+
+<br/><br/>
+
+### Login
+
+<img src="Screenshots/login.png" width="90%" />
+
+<br/><br/>
+
+### Recipe List
+
+<img src="Screenshots/recipe_list.png" width="90%" />
+
+<br/><br/>
+
+### Add Recipe
+
+<img src="Screenshots/add_recipe.png" width="90%" />
+
+<br/><br/>
+
+### Your Recipes
+
+<img src="Screenshots/your_recipe.png" width="90%" />
+
+</div>
+
+---
 
 ## Key Features
 
